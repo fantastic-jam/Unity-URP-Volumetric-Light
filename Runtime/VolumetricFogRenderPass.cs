@@ -112,10 +112,14 @@ public sealed class VolumetricFogRenderPass : ScriptableRenderPass
 	private Material downsampleDepthMaterial;
 	private Material volumetricFogMaterial;
 
+#if !UNITY_6000_4_OR_NEWER
+
 	private RTHandle downsampledCameraDepthRTHandle;
 	private RTHandle volumetricFogRenderRTHandle;
 	private RTHandle volumetricFogBlurRTHandle;
 	private RTHandle volumetricFogUpsampleCompositionRTHandle;
+
+#endif
 
 	private ProfilingSampler downsampleDepthProfilingSampler;
 
@@ -159,6 +163,8 @@ public sealed class VolumetricFogRenderPass : ScriptableRenderPass
 	#endregion
 
 	#region Scriptable Render Pass Methods
+
+#if !UNITY_6000_4_OR_NEWER
 
 	/// <summary>
 	/// <inheritdoc/>
@@ -237,6 +243,8 @@ public sealed class VolumetricFogRenderPass : ScriptableRenderPass
 
 		CommandBufferPool.Release(cmd);
 	}
+
+#endif
 
 #if UNITY_6000_0_OR_NEWER
 
@@ -510,6 +518,8 @@ public sealed class VolumetricFogRenderPass : ScriptableRenderPass
 
 #endif
 
+#if !UNITY_6000_4_OR_NEWER
+
 	/// <summary>
 	/// Re-allocate fixed-size RTHandle if it is not allocated or doesn't match the descriptor.
 	/// </summary>
@@ -536,6 +546,8 @@ public sealed class VolumetricFogRenderPass : ScriptableRenderPass
 		volumetricFogBlurRTHandle?.Release();
 		volumetricFogUpsampleCompositionRTHandle?.Release();
 	}
+
+#endif
 
 	#endregion
 }
