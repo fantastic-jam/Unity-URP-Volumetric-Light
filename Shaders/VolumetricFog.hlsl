@@ -154,7 +154,7 @@ float3 GetStepAdditionalLightsColor(float2 uv, float3 currPosWS, float3 rd, floa
     // Loop differently through lights in Forward+ while considering Forward and Deferred too.
     LIGHT_LOOP_BEGIN(_CustomAdditionalLightsCount)
         UNITY_BRANCH
-        uint _li = min(lightIndex, MAX_VISIBLE_LIGHTS);
+        uint _li = min(lightIndex, MAX_VISIBLE_LIGHTS - 1);
         if (_Scatterings[_li] > 0.0)
         {
             Light additionalLight = GetAdditionalPerObjectLight(lightIndex, currPosWS);
