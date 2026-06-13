@@ -93,7 +93,7 @@ float GetMainLightPhase(float3 rd)
 #if _MAIN_LIGHT_CONTRIBUTION_DISABLED
     return 0.0;
 #else
-    return CornetteShanksPhaseFunction(_Anisotropies[_CustomAdditionalLightsCount], dot(rd, GetMainLight().direction));
+    return CornetteShanksPhaseFunction(_Anisotropies[min(_CustomAdditionalLightsCount, MAX_VISIBLE_LIGHTS)], dot(rd, GetMainLight().direction));
 #endif
 }
 
@@ -134,7 +134,7 @@ float3 GetStepMainLightColor(float3 currPosWS, float phaseMainLight, float densi
 #if _LIGHT_COOKIES
     mainLight.color *= SampleMainLightCookie(currPosWS);
 #endif
-    return (mainLight.color * _Tint) * (mainLight.shadowAttenuation * phaseMainLight * density * _Scatterings[_CustomAdditionalLightsCount]);
+    return (mainLight.color * _Tint) * (mainLight.shadowAttenuation * phaseMainLight * density * _Scatterings[min(_CustomAdditionalLightsCount, MAX_VISIBLE_LIGHTS)]);
 }
 
 // Gets the accumulated color from additional lights at one raymarch step.
@@ -154,7 +154,8 @@ float3 GetStepAdditionalLightsColor(float2 uv, float3 currPosWS, float3 rd, floa
     // Loop differently through lights in Forward+ while considering Forward and Deferred too.
     LIGHT_LOOP_BEGIN(_CustomAdditionalLightsCount)
         UNITY_BRANCH
-        if (_Scatterings[lightIndex] > 0.0)
+        uint _li = min(lightIndex, MAX_VISIBLE_LIGHTS);
+        if (_Scatterings[_li] > 0.0)
         {
             Light additionalLight = GetAdditionalPerObjectLight(lightIndex, currPosWS);
             additionalLight.shadowAttenuation = VolumetricAdditionalLightRealtimeShadow(lightIndex, currPosWS, additionalLight.direction);
@@ -171,15 +172,15 @@ float3 GetStepAdditionalLightsColor(float2 uv, float3 currPosWS, float3 rd, floa
             // Gradually reduce additional lights scattering to zero at their origin to try to avoid flicker-aliasing.
             float3 distToPos = additionalLightPos.xyz - currPosWS;
             float distToPosMagnitudeSq = dot(distToPos, distToPos);
-            float newScattering = smoothstep(0.0, _RadiiSq[lightIndex], distToPosMagnitudeSq) ;
+            float newScattering = smoothstep(0.0, _RadiiSq[_li], distToPosMagnitudeSq) ;
             newScattering *= newScattering;
-            newScattering *= _Scatterings[lightIndex];
+            newScattering *= _Scatterings[_li];
 
             // If directional lights are also considered as additional lights when more than 1 is used, ignore the previous code when it is a directional light.
             // They store direction in additionalLightPos.xyz and have .w set to 0, while point and spotlights have it set to 1.
             // newScattering = lerp(1.0, newScattering, additionalLightPos.w);
-    
-            float phase = CornetteShanksPhaseFunction(_Anisotropies[lightIndex], dot(rd, additionalLight.direction));
+
+            float phase = CornetteShanksPhaseFunction(_Anisotropies[_li], dot(rd, additionalLight.direction));
             additionalLightsColor += (additionalLight.color * (additionalLight.shadowAttenuation * additionalLight.distanceAttenuation * phase * density * newScattering));
         }
     LIGHT_LOOP_END
