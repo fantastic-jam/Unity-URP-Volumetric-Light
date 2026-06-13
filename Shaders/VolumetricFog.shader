@@ -34,6 +34,12 @@ Shader "Hidden/VolumetricFog"
             #pragma multi_compile_local_fragment _ _ADDITIONAL_LIGHTS_CONTRIBUTION_DISABLED
             #pragma multi_compile_local_fragment _ _APV_CONTRIBUTION_ENABLED
 
+            // Post-process blit: stereo is handled via UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX,
+            // not hardware instancing. Suppressing STEREO_INSTANCING_ON prevents a D3D11 internal
+            // compiler error where the Forward+ lightIndex register is flagged as uninitialized
+            // after the stereo instancing transform.
+            #pragma instancing_options nostereo
+
             #pragma vertex Vert
             #pragma fragment Frag
 
